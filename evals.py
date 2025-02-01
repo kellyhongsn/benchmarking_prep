@@ -12,9 +12,6 @@ metrics to measure:
 - top-k accuracy
 - NDCG@k
 
-run this and mteb
-
-lab notebook
 """
 
 import pytrec_eval

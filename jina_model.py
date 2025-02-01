@@ -42,16 +42,14 @@ class JinaAIEmbedder:
             for i in range(0, len(sentences), self.batch_size):
                 batch = sentences[i: i + self.batch_size]
 
-                # Format input for JinaAI API
                 data = {
                     "model": self.model,
-                    "dimensions": 1024,  # Adjust based on the model
+                    "dimensions": 1024,
                     "normalized": True,
                     "embedding_type": "float",
                     "input": [{"text": sentence} for sentence in batch]
                 }
 
-                # API Request to JinaAI
                 response = requests.post(self.url, headers=self.headers, data=json.dumps(data))
                 if response.status_code != 200:
                     raise Exception(f"JinaAI API error: {response.text}")
@@ -61,7 +59,6 @@ class JinaAIEmbedder:
 
                 fin_embeddings.extend(out)
 
-        # Save embeddings
         if fin_embeddings and self.save_emb:
             dump = {
                 "fin_embeddings": fin_embeddings,
@@ -73,7 +70,6 @@ class JinaAIEmbedder:
 
 
 def parse_args():
-    # Parse command line arguments
     parser = argparse.ArgumentParser()
     parser.add_argument("--startid", type=int)
     parser.add_argument("--endid", type=int)
@@ -84,17 +80,5 @@ def parse_args():
     args = parser.parse_args()
     return args
 
-
-def main(args):
-    for task in TASK_LIST[args.startid:args.endid]:
-        print("Running task: ", task)
-        model = JinaAIEmbedder(args.model, task_name=task, batch_size=args.batchsize, save_emb=True)
-        eval_splits = ["validation"] if task == "MSMARCO" else ["test"]
-        model_name = args.model.replace("/", "_")  # Ensure valid folder names
-        evaluation = MTEB(tasks=[task], task_langs=[args.lang])
-        evaluation.run(model, output_folder=f"results/{model_name}", batch_size=args.batchsize, eval_splits=eval_splits, corpus_chunk_size=10000)
-
-
 if __name__ == "__main__":
     args = parse_args()
-    main(args)
